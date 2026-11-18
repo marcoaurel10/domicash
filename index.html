@@ -76,7 +76,8 @@ nav.menu a{text-decoration:none;color:var(--tx2)}nav.menu a:hover{color:var(--tx
 .flutua b{display:block;font-size:14px}
 .flutua .ic{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex:none}
 .f1{left:-34px;top:16%}.f2{right:-30px;bottom:18%}
-@media (max-width:560px){.f1{left:-8px;top:8%}.f2{right:-8px;bottom:8%}.flutua{max-width:210px;font-size:12px}}
+.flutua span{white-space:nowrap}
+@media (max-width:560px){.f1{left:-6px;top:7%}.f2{right:-6px;bottom:7%}.flutua{max-width:none;font-size:12px;padding:8px 12px;gap:8px}.flutua b{font-size:13px}.flutua .ic{width:28px;height:28px}}
 
 /* dores */
 .dores{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
@@ -205,7 +206,8 @@ nav.menu a{text-decoration:none;color:var(--tx2)}nav.menu a:hover{color:var(--tx
 /* rodapé */
 footer{border-top:1px solid var(--bd);padding:40px 0 48px;margin-top:88px;color:var(--tx2);font-size:14px}
 footer .wrap{display:flex;flex-wrap:wrap;gap:22px 40px;justify-content:space-between;align-items:flex-start}
-footer nav{display:flex;flex-wrap:wrap;gap:10px 22px}
+footer nav{display:flex;flex-wrap:wrap;gap:0 22px}
+footer nav a{padding:11px 0;display:inline-block}
 footer a{text-decoration:none}footer a:hover{color:var(--tx)}
 footer .marca{color:var(--tx);margin-bottom:6px}
 
