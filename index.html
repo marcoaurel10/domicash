@@ -71,16 +71,25 @@ nav.menu a{text-decoration:none;color:var(--tx2)}nav.menu a:hover{color:var(--tx
 /* celular */
 .cel{position:relative;width:min(300px,78vw);margin:0 auto;border-radius:40px;padding:10px;background:linear-gradient(160deg,#2a332e,#0b0f0d);box-shadow:var(--sombra),inset 0 0 0 1px rgba(255,255,255,.08)}
 .cel img{border-radius:31px;aspect-ratio:1/2;object-fit:cover;width:100%;height:auto}
-.cel::before{content:"";position:absolute;top:20px;left:50%;width:70px;height:7px;border-radius:9px;background:#000;transform:translateX(-50%);z-index:2;opacity:.85}
+.cel::before{content:"";position:absolute;top:2px;left:50%;width:56px;height:5px;border-radius:9px;background:#000;transform:translateX(-50%);z-index:2;opacity:.85}
 .flutua{position:absolute;background:var(--card);border:1px solid var(--bd);border-radius:16px;padding:10px 14px;box-shadow:var(--sombra);font-size:13px;display:flex;gap:10px;align-items:center;max-width:250px}
 .flutua b{display:block;font-size:14px}
 .flutua .ic{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex:none}
-.f1{left:-34px;top:16%}.f2{right:-30px;bottom:18%}
+/* os balões ficam À DIREITA do celular (só encostam na moldura), para não cobrir a tela do app nem o título à esquerda;
+   quando não há espaço dos lados (tela estreita ou zoom alto), descem para baixo do celular, centralizados */
+.vis{position:relative;width:min(300px,78vw);margin:0 auto}
+.vis .cel{width:100%}
+.f1{left:calc(100% - 8px);top:16%}.f2{left:calc(100% - 8px);bottom:20%}
 .flutua span{white-space:nowrap}
-@media (max-width:560px){.f1{left:-6px;top:7%}.f2{right:-6px;bottom:7%}.flutua{max-width:none;font-size:12px;padding:8px 12px;gap:8px}.flutua b{font-size:13px}.flutua .ic{width:28px;height:28px}}
+@media (max-width:1380px){
+  .flts{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin-top:18px;width:max-content;max-width:calc(100vw - 32px);position:relative;left:50%;transform:translateX(-50%)}
+  .flts .flutua{position:static;max-width:100%}
+  .flutua span{white-space:normal}
+}
+@media (max-width:560px){.flutua{font-size:12px;padding:8px 12px;gap:8px}.flutua b{font-size:13px}.flutua .ic{width:28px;height:28px}}
 
 /* dores */
-.dores{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.dores{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
 .dor{background:var(--card);border:1px solid var(--bd);border-radius:20px;padding:26px}
 .dor q{display:block;font-size:19px;font-weight:700;line-height:1.35;quotes:"“" "”"}
 .dor p{color:var(--tx2);margin:12px 0 0;font-size:15px}
@@ -89,12 +98,12 @@ nav.menu a{text-decoration:none;color:var(--tx2)}nav.menu a:hover{color:var(--tx
 @media (max-width:860px){.dores{grid-template-columns:1fr}}
 
 /* pilares */
-.pilares{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.pilares{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
 .pilar{padding:24px;border-radius:20px;background:linear-gradient(180deg,var(--card),var(--bg2));border:1px solid var(--bd)}
 .pilar .n{font-size:13px;font-weight:700;color:var(--tx2)}
 .pilar h3{font-size:24px;margin:8px 0 8px}
 .pilar p{margin:0;color:var(--tx2);font-size:15px}
-@media (max-width:860px){.pilares{grid-template-columns:1fr 1fr}}
+@media (max-width:860px){.pilares{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}}
 @media (max-width:480px){.pilares{grid-template-columns:1fr}}
 
 /* destaques alternados */
@@ -144,21 +153,21 @@ nav.menu a{text-decoration:none;color:var(--tx2)}nav.menu a:hover{color:var(--tx
 /* galeria de telas */
 .galeria{display:flex;gap:22px;overflow-x:auto;scroll-snap-type:x mandatory;padding:6px 20px 26px;margin:0 -20px;scrollbar-width:thin}
 .galeria figure{flex:0 0 220px;margin:0;scroll-snap-align:center;text-align:center}
-.galeria .cel{width:220px;border-radius:32px;padding:8px}.galeria .cel img{border-radius:25px}.galeria .cel::before{top:16px;width:54px;height:6px}
+.galeria .cel{width:220px;border-radius:32px;padding:8px}.galeria .cel img{border-radius:25px}.galeria .cel::before{top:2px;width:44px;height:4px}
 .galeria figcaption{margin-top:14px;font-weight:600;font-size:15px}
 .galeria figcaption span{display:block;color:var(--tx2);font-weight:400;font-size:13px}
 
 /* recursos */
-.grade{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.grade{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
 .rec{background:var(--card);border:1px solid var(--bd);border-radius:18px;padding:22px}
 .rec .ic{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;margin-bottom:14px}
 .rec h3{font-size:17px;margin-bottom:6px}
 .rec p{margin:0;color:var(--tx2);font-size:14.5px}
-@media (max-width:860px){.grade{grid-template-columns:1fr 1fr}}
+@media (max-width:860px){.grade{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}}
 @media (max-width:540px){.grade{grid-template-columns:1fr}}
 
 /* passos */
-.passos{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;counter-reset:p}
+.passos{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;counter-reset:p}
 .passo{position:relative;padding:26px;border-radius:20px;border:1px solid var(--bd);background:var(--card)}
 .passo::before{counter-increment:p;content:counter(p);width:38px;height:38px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-weight:800;background:var(--verde);color:#fff;margin-bottom:14px}
 .passo h3{font-size:19px;margin-bottom:6px}.passo p{margin:0;color:var(--tx2);font-size:15px}
@@ -267,10 +276,12 @@ footer .marca{color:var(--tx);margin-bottom:6px}
         <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5L20 7"/></svg>Seus dados ficam no seu celular</li>
       </ul>
     </div>
-    <div style="position:relative">
+    <div class="vis">
       <div class="cel"><img src="img/1-inicio.jpg" alt="Tela inicial do Domicash com quanto fica livre no mês, atalhos e calendário de pagamentos" width="540" height="1080"></div>
-      <div class="flutua f1"><span class="ic" style="background:color-mix(in srgb,var(--verde) 18%,transparent);color:var(--verde)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5L20 7"/></svg></span><span><b>Sobram R$ 2.857,85</b>do salário em novembro</span></div>
+      <div class="flts">
+      <div class="flutua f1"><span class="ic" style="background:color-mix(in srgb,var(--verde) 18%,transparent);color:var(--verde)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg></span><span><b>Nubank vence amanhã</b>o celular avisa antes</span></div>
       <div class="flutua f2"><span class="ic" style="background:color-mix(in srgb,var(--roxo) 18%,transparent);color:var(--roxo)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2z"/></svg></span><span><b>Em dez/26 acaba 1 dívida</b>e você libera R$ 412,35/mês</span></div>
+      </div>
     </div>
   </div>
 </section>
