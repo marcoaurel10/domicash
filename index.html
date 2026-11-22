@@ -75,13 +75,14 @@ nav.menu a{text-decoration:none;color:var(--tx2)}nav.menu a:hover{color:var(--tx
 .flutua{position:absolute;background:var(--card);border:1px solid var(--bd);border-radius:16px;padding:10px 14px;box-shadow:var(--sombra);font-size:13px;display:flex;gap:10px;align-items:center;max-width:250px}
 .flutua b{display:block;font-size:14px}
 .flutua .ic{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex:none}
-/* os balões ficam À DIREITA do celular (só encostam na moldura), para não cobrir a tela do app nem o título à esquerda;
+/* os balões encostam no celular sem cobrir o "Livre no mês" nem outros valores;
    quando não há espaço dos lados (tela estreita ou zoom alto), descem para baixo do celular, centralizados */
 .vis{position:relative;width:min(300px,78vw);margin:0 auto}
 .vis .cel{width:100%}
-.f1{left:calc(100% - 8px);top:16%}.f2{left:calc(100% - 8px);bottom:20%}
+/* sobrepõem o celular só onde não há valores: f2 sobre os atalhos (lado direito) e f1 sobre a barra de baixo (lado esquerdo) */
+.f2{left:calc(100% - 92px);top:37%}.f1{right:calc(100% - 104px);bottom:1.5%}
 .flutua span{white-space:nowrap}
-@media (max-width:1380px){
+@media (max-width:1199px){
   .flts{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin-top:18px;width:max-content;max-width:calc(100vw - 32px);position:relative;left:50%;transform:translateX(-50%)}
   .flts .flutua{position:static;max-width:100%}
   .flutua span{white-space:normal}
