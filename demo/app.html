@@ -674,9 +674,9 @@ html.vn-oculto .vnval,html.vn-oculto .vnmes .sv,html.vn-oculto #tela .valb{filte
 @keyframes vnconf{to{transform:translate(var(--x),var(--y)) rotate(var(--r));opacity:0}}
 /* ===== v1.25 ===== */
 /* saldo dia a dia (Visão do mês) */
-.ddia{display:flex;gap:10px;align-items:flex-start;padding:9px 0;border-top:1px solid var(--bd);font-size:14px}
-.ddia .dd{min-width:52px;font-weight:800;color:var(--tx2)}
-.ddia .ln{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}.ddia .ln span{min-width:0;overflow-wrap:anywhere}.ddia .ln b{white-space:nowrap}
+.ddia{display:flex;flex-wrap:wrap;gap:4px 10px;align-items:baseline;padding:9px 0;border-top:1px solid var(--bd);font-size:14px}
+.ddia .dd{flex:1;min-width:52px;font-weight:800;color:var(--tx2)}
+.ddia .grow{order:2;flex:1 0 100%;min-width:0}.ddia .ln{display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding:2px 0}.ddia .ln span{min-width:0;overflow-wrap:anywhere}.ddia .ln b{white-space:nowrap}
 .ddia .ds{min-width:84px;text-align:right;font-weight:800;white-space:nowrap}
 .ddia.neg .ds{color:var(--bad)}
 /* fôlego da reserva */
@@ -988,14 +988,14 @@ document.addEventListener('keydown',e=>{if(e.key!=='Enter'||e.isComposing)return
     const ok=document.getElementById('mOk');if(ok)ok.click();return}
   if(bv){const c=bv.querySelector('#bvCont');if(c){e.preventDefault();c.click()}return}
   t.blur()});
-function abrirModal({titulo,corpo,okTxt='Confirmar',cancelTxt='Cancelar',aoAbrir,aoOk}){
+function abrirModal({titulo,corpo,okTxt='Confirmar',cancelTxt='Cancelar',aoAbrir,aoOk,aoCancelar}){
   fecharModal();
   const f=document.createElement('div');f.className='mfundo';f.id='modal';
   f.innerHTML=`<div class="mcaixa" role="dialog"><h3>${titulo}</h3><div id="mCorpo">${corpo}</div><div class="err" id="mErro"></div>
   <div class="mbts"><button class="btn sec" id="mCancelar">${cancelTxt}</button><button class="btn" id="mOk">${okTxt}</button></div></div>`;
   document.body.appendChild(f);
   f.onclick=e=>{if(e.target===f)fecharModal()};
-  document.getElementById('mCancelar').onclick=fecharModal;
+  document.getElementById('mCancelar').onclick=()=>{fecharModal();if(aoCancelar)aoCancelar()};// só o botão: tocar fora e o voltar apenas fecham
   document.getElementById('mOk').onclick=()=>{const r=aoOk();if(r!==false)fecharModal()};
   if(aoAbrir)aoAbrir();
 }
@@ -1460,7 +1460,7 @@ function diaADiaHTML(M){
     ${min?(!sc&&min.v<0?`<div class="dicaok" style="margin:6px 0 8px">Sem o saldo da conta, os primeiros dias ficam no negativo até a renda entrar. Informe quanto tem na conta hoje para ver o dia mais apertado de verdade.</div>`
       :`<div class="dicaok" style="margin:6px 0 8px;${min.v<0?'background:var(--bad-l);color:var(--bad)':''}">${min.v<0?`No dia ${min.d} falta <b>${brl(Math.abs(min.v))}</b>. Dá para adiar algo?`:`Dia mais apertado: <b>dia ${min.d}</b>, com <b class="vnval">${brl(min.v)}</b>`}</div>`):''}
     ${linhas||'<div class="lbl">Nada mais a entrar ou sair neste mês.</div>'}
-    <div class="lbl" style="margin:8px 0 0">Inclui a Agenda e o que vai para as metas. O saldo de cada dia fica à direita.${sc?' As suas contas vencidas e não pagas entram no dia do saldo; o que os outros te devem em atraso, não.':''}</div></div>`}
+    <div class="lbl" style="margin:8px 0 0">Inclui a Agenda e o que vai para as metas. O saldo de cada dia fica ao lado da data.${sc?' As suas contas vencidas e não pagas entram no dia do saldo; o que os outros te devem em atraso, não.':''}</div></div>`}
 // ---- H3: fôlego da reserva (dias que a reserva paga as suas contas) ----
 function custoDia(){const v=[0,1,2].map(k=>contasDoMes(mesAtual()-k).total).filter(x=>x>0);return v.length?Math.max(...v)/30:0}
 function folego(x){const c=custoDia();if(!c)return null;const g=Math.max(0,guardadoMeta(x)),dias=Math.floor(g/c),marcas=[30,90,180],prox=marcas.find(m=>m>dias);
@@ -1488,9 +1488,9 @@ function anotarGastoDia(iso,v,cat,forma,desc){
   acao('divida',`Gasto do dia ${iso.slice(8,10)}/${iso.slice(5,7)}: ${reg.desc} · ${brl(v)}`,{},()=>{db.dividas.push(reg);return{novos:{d:[nid]}}});
   if(!cartao){T_PG=d0.getTime();try{registrarValor(reg,reg.valor)}finally{T_PG=0}}}
 function colocarEmDia(){
-  const fila=diasSemAnotar();if(!fila.length){toast('Tudo em dia!');return}let i=0,cat='',forma='Pix';
+  const fila=diasSemAnotar();if(!fila.length){toast('Tudo em dia!');return}let i=0,pulou=0,cat='',forma='Pix';
   const cats=[...new Set(['Alimentação','Transporte','Compras','Casa','Lazer',...todasCategorias()])].slice(0,8);
-  const passo=()=>{if(i>=fila.length){fecharModal();salvar();render();toast('🎉 Tudo em dia!');comemorar();return}
+  const passo=()=>{if(i>=fila.length){fecharModal();salvar();render();if(pulou)toast(pulou===1?'1 dia ficou para depois':`${pulou} dias ficaram para depois`);else{toast('🎉 Tudo em dia!');comemorar()}return}
     const s=fila[i],d=diaDeISO(s),nomeD=d.toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long'}).replace(/^./,c=>c.toUpperCase());
     abrirModal({titulo:`Colocar em dia · ${i+1} de ${fila.length}`,okTxt:'Anotar e seguir',cancelTxt:'Pular este dia',
       corpo:`<div class="t" style="font-size:17px;margin-top:4px">${nomeD}</div><div class="lbl">Gastou alguma coisa nesse dia?</div>
@@ -1502,9 +1502,9 @@ function colocarEmDia(){
       aoAbrir(){document.querySelectorAll('[data-cdc]').forEach(b=>b.onclick=()=>{cat=cat===b.dataset.cdc?'':b.dataset.cdc;document.querySelectorAll('[data-cdc]').forEach(z=>z.classList.toggle('on',z.dataset.cdc===cat))});
         document.querySelectorAll('[data-cdf]').forEach(b=>b.onclick=()=>{forma=b.dataset.cdf;document.querySelectorAll('[data-cdf]').forEach(z=>z.classList.toggle('on',z===b))});
         document.getElementById('cdVal').oninput=()=>erroModal('');
-        document.getElementById('cdNada').onclick=()=>{db.diasOk=[...(db.diasOk||[]),s].slice(-120);i++;fecharModal();setTimeout(passo,120)};
+        document.getElementById('cdNada').onclick=()=>{db.diasOk=[...(db.diasOk||[]),s].slice(-120);salvar();i++;fecharModal();setTimeout(passo,120)};
         setTimeout(()=>{const e=document.getElementById('cdVal');if(e)e.focus()},60)},
-      aoCancelar(){i++;setTimeout(passo,120)},
+      aoCancelar(){i++;pulou++;setTimeout(passo,120)},
       aoOk(){const v=lerValor(document.getElementById('cdVal').value.trim());if(!(v>0)){erroModal('Informe o valor ou toque em "Não gastei nada"');return false}
         anotarGastoDia(s,v,cat,forma,document.getElementById('cdDesc').value.trim());i++;setTimeout(passo,120)}})};
   passo()}
@@ -3471,10 +3471,10 @@ function formLembrete(l,dataPadrao){
 
 // ---- Guia e novidades: boas-vindas, tour com destaque, missões e novidades de cada versão ----
 // Estado em LS_ 'cobrancas_guia' (deste celular): {vistas:[ids], novLida:'1.6', bv:true}
-const VERSAO_APP='1.25.1';
+const VERSAO_APP='1.25.2';
 // No Guia aparece só a 1ª (a versão atual); as anteriores ficam só como registro (o histórico completo está nas Releases e em versoes/)
 const NOVIDADES=[
-  ['1.25.1','23 nov 2026','Dia a dia, conquistas e avisos',['Visão do mês com o saldo dia a dia e o dia mais apertado. Informe quanto tem na conta hoje para ficar mais exato.','Reserva de emergência com o fôlego em dias, meses em dia com medalha e 14 conquistas.','"Colocar em dia" para quem anota os gastos do dia a dia, e avisos automáticos: limite em 80%, resumo da semana e pessoas atrasadas.','Ganhos iguais no mesmo dia viram "4×", e o "Quando sobra salário" passa a contar a previsão dos ganhos.'],'mes'],
+  ['1.25.2','23 nov 2026','Dia a dia, conquistas e avisos',['Visão do mês com o saldo dia a dia e o dia mais apertado. Informe quanto tem na conta hoje para ficar mais exato.','Reserva de emergência com o fôlego em dias, meses em dia com medalha e 14 conquistas.','"Colocar em dia" para quem anota os gastos do dia a dia, e avisos automáticos: limite em 80%, resumo da semana e pessoas atrasadas.','Ganhos iguais no mesmo dia viram "4×", e o "Quando sobra salário" passa a contar a previsão dos ganhos.'],'mes'],
   ['1.24','22 nov 2026','Visual novo',['Início novo: quanto fica livre no mês, com quanto dá por dia, o anel das contas pagas e os próximos pagamentos.','Atalhos redondos que rolam para o lado (Recebi, Paguei, Nova dívida, Cobrar, Agenda, Ganhos, Metas) e cartões de dica que rolam.','Barra embaixo com Início, Mês, Contas, Pessoas e Agenda. O resto continua no menu ☰.','O olho ao lado do seu nome esconde os valores do Início e da Visão do mês.','Cartões, botões e janelas mais arredondados, janelas que sobem de baixo e uma comemoração ao marcar como pago. O topo segue verde; troque em Ajustes › Aparência › Cor do topo.'],'inicio'],
   ['1.23','19 nov 2026','Mais fácil com letra grande',['Nova dívida: "Eu" e "Escolher outra pessoa", com uma roleta de A a Z. Categorias e bancos ficam sempre em ordem alfabética, e a sugestão de categoria aparece à parte.','Minhas contas mais curtas: uma linha por conta, com "Pagou" ao lado do valor. Toque na conta para editar, encerrar ou apagar.','Datas, meses e opções agora abrem no próprio app (calendário e roleta) e crescem com a letra. Os meses do 13º se escolhem na roleta.','A Visão do mês passa a somar o 13º e os ganhos anotados. Metas sugerem um prazo mais folgado.','Cores dos bancos: 10 tons (os dos bancos mais usados no Brasil), cada um com 5 intensidades. Ao digitar o nome do banco, a cor dele já vem marcada.'],'nova'],
   // a 1.20 e a 1.21 não foram para a Play Store: a 1.22 repete o que elas trouxeram
