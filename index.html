@@ -54,6 +54,9 @@ nav.menu a{text-decoration:none;color:var(--tx2)}nav.menu a:hover{color:var(--tx
 .btn.play span{text-align:left}
 .btn.sec{background:transparent;border-color:var(--bd);color:var(--tx)}
 .btn.sec:hover{border-color:var(--tx2)}
+/* antes do lançamento na Play: botão sem link; quem tem o convite baixa pelo texto logo abaixo */
+.btn.breve{cursor:default}.btn.breve:hover{transform:none}
+.convite{flex-basis:100%;margin:2px 0 0;font-size:14px;color:var(--tx2)}.convite a{color:var(--verde);font-weight:600;text-underline-offset:3px}
 .btn.min{padding:9px 15px;font-size:14px;border-radius:12px}
 
 /* herói */
@@ -257,7 +260,7 @@ footer .marca{color:var(--tx);margin-bottom:6px}
     <nav class="menu" aria-label="Seções">
       <a href="#como">Como funciona</a><a href="#recursos">Recursos</a><a href="#planos">Grátis e Pro</a><a href="#duvidas">Dúvidas</a>
     </nav>
-    <a class="btn play min" data-play href="#">Baixar</a>
+    <span class="btn play min breve">Em breve</span>
   </div>
 </header>
 
@@ -270,8 +273,9 @@ footer .marca{color:var(--tx);margin-bottom:6px}
       <h1>Suas dívidas sob controle. <em>Seu mês sem surpresas.</em></h1>
       <p class="sub">Organize parcelas, faturas e mensalidades. Veja quanto do salário já está comprometido, quando cada dívida acaba e o que muda antes de comprar. E, se alguém usa o seu cartão, o Domicash cobra com o Pix pronto.</p>
       <div class="acoes">
-        <a class="btn play" data-play href="#"><svg width="24" height="26" viewBox="0 0 24 26" aria-hidden="true"><path fill="currentColor" d="M2 1.2 14.4 13 2 24.8c-.6-.3-1-1-1-1.8V3c0-.8.4-1.5 1-1.8Zm13.8 13.2 3 2.9-14 8 11-10.9Zm4.6-4.2 2.4 1.4c1.1.6 1.1 2.2 0 2.8l-2.6 1.5-3.2-3.1 3.4-2.6ZM4.8.7l14 8-3 2.9L4.8.7Z"/></svg><span><small>Disponível no</small><b>Google Play</b></span></a>
+        <span class="btn play breve"><svg width="24" height="26" viewBox="0 0 24 26" aria-hidden="true"><path fill="currentColor" d="M2 1.2 14.4 13 2 24.8c-.6-.3-1-1-1-1.8V3c0-.8.4-1.5 1-1.8Zm13.8 13.2 3 2.9-14 8 11-10.9Zm4.6-4.2 2.4 1.4c1.1.6 1.1 2.2 0 2.8l-2.6 1.5-3.2-3.1 3.4-2.6ZM4.8.7l14 8-3 2.9L4.8.7Z"/></svg><span><small>Em breve no</small><b>Google Play</b></span></span>
         <a class="btn sec" href="demo/">▶ Ver o app funcionando</a>
+        <p class="convite">Já tem acesso antecipado? <a data-teste href="#">Baixe por aqui</a>, com a conta Google que recebeu o convite.</p>
       </div>
       <ul class="selos">
         <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5L20 7"/></svg>Grátis</li>
@@ -438,7 +442,7 @@ Agradeço! 🙏<small>10:02 ✓✓</small></div>
   <div class="wrap">
     <div class="cab surge"><span class="tag">Como começar</span><h2>Do download ao primeiro aviso em 5 minutos.</h2></div>
     <div class="passos">
-      <div class="passo surge"><h3>Baixe o app</h3><p>Grátis na Google Play. Não precisa criar conta nem informar dados do banco.</p></div>
+      <div class="passo surge"><h3>Baixe o app</h3><p>Grátis, em breve na Google Play. Não precisa criar conta nem informar dados do banco.</p></div>
       <div class="passo surge"><h3>Cadastre suas contas</h3><p>Na primeira vez, o app te guia: seu nome, os cartões com o dia do vencimento, a sua renda e os avisos. Depois, as parcelas, as mensalidades e os ganhos do dia a dia. Se alguém usa seu cartão, marque de quem é cada compra.</p></div>
       <div class="passo surge"><h3>Acompanhe e planeje</h3><p>Veja quanto sobra no mês, quando cada dívida acaba e deixe os avisos lembrarem dos vencimentos por você.</p></div>
     </div>
@@ -482,7 +486,7 @@ Agradeço! 🙏<small>10:02 ✓✓</small></div>
           <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5L20 7"/></svg>Cobrança simples pelo WhatsApp</li>
           <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5L20 7"/></svg>Bloqueio, backup no celular e planilha</li>
         </ul>
-        <a class="btn play" data-play href="#">Baixar grátis</a>
+        <span class="btn play breve">Em breve no Google Play</span>
       </div>
       <div class="plano pro surge">
         <h3>Domicash Pro <span class="selo">EM BREVE</span></h3>
@@ -496,7 +500,7 @@ Agradeço! 🙏<small>10:02 ✓✓</small></div>
           <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5L20 7"/></svg>Backup automático no Google Drive</li>
           <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5L20 7"/></svg>Placar, Agenda, widget, gráficos e temas extras</li>
         </ul>
-        <a class="btn sec" data-play href="#">Baixar e experimentar</a>
+        <span class="btn sec breve">Em breve no Google Play</span>
       </div>
     </div>
     <p class="aviso">No lançamento, <b>todas as funções estão liberadas</b>. Quando o Pro chegar, nada do que você cadastrou será apagado.</p>
@@ -529,8 +533,9 @@ Agradeço! 🙏<small>10:02 ✓✓</small></div>
       <h2>Pare de fazer conta de cabeça.</h2>
       <p class="sub" style="margin:14px auto 0">Baixe o Domicash e saiba, hoje, quanto sobra do seu salário e quando suas dívidas acabam.</p>
       <div class="acoes">
-        <a class="btn play" data-play href="#"><svg width="24" height="26" viewBox="0 0 24 26" aria-hidden="true"><path fill="currentColor" d="M2 1.2 14.4 13 2 24.8c-.6-.3-1-1-1-1.8V3c0-.8.4-1.5 1-1.8Zm13.8 13.2 3 2.9-14 8 11-10.9Zm4.6-4.2 2.4 1.4c1.1.6 1.1 2.2 0 2.8l-2.6 1.5-3.2-3.1 3.4-2.6ZM4.8.7l14 8-3 2.9L4.8.7Z"/></svg><span><small>Disponível no</small><b>Google Play</b></span></a>
+        <span class="btn play breve"><svg width="24" height="26" viewBox="0 0 24 26" aria-hidden="true"><path fill="currentColor" d="M2 1.2 14.4 13 2 24.8c-.6-.3-1-1-1-1.8V3c0-.8.4-1.5 1-1.8Zm13.8 13.2 3 2.9-14 8 11-10.9Zm4.6-4.2 2.4 1.4c1.1.6 1.1 2.2 0 2.8l-2.6 1.5-3.2-3.1 3.4-2.6ZM4.8.7l14 8-3 2.9L4.8.7Z"/></svg><span><small>Em breve no</small><b>Google Play</b></span></span>
         <a class="btn sec" href="mailto:aurothon.studio@gmail.com">Fale com a gente</a>
+        <p class="convite">Já tem acesso antecipado? <a data-teste href="#">Baixe por aqui</a>, com a conta Google que recebeu o convite.</p>
       </div>
     </div>
   </div>
@@ -553,6 +558,9 @@ Agradeço! 🙏<small>10:02 ✓✓</small></div>
 // Link da Google Play (um só lugar para trocar)
 const PLAY='https://play.google.com/store/apps/details?id=com.aurothon.domicash';
 document.querySelectorAll('[data-play]').forEach(a=>{a.href=PLAY;a.target='_blank';a.rel='noopener'});
+// antes do lançamento: quem recebeu o convite entra e baixa por este link
+const CONVITE='https://play.google.com/apps/testing/com.aurothon.domicash';
+document.querySelectorAll('[data-teste]').forEach(a=>{a.href=CONVITE;a.target='_blank';a.rel='noopener'});
 // borda do topo ao rolar
 const topo=document.getElementById('topo');addEventListener('scroll',()=>topo.classList.toggle('rolou',scrollY>8),{passive:true});
 // entrada suave das seções
