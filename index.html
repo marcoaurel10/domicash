@@ -77,16 +77,18 @@ nav.menu a{text-decoration:none;color:var(--tx2)}nav.menu a:hover{color:var(--tx
 .flutua .ic{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex:none}
 /* os balões encostam no celular sem cobrir o "Livre no mês" nem outros valores;
    quando não há espaço dos lados (tela estreita ou zoom alto), descem para baixo do celular, centralizados */
-.vis{position:relative;width:min(300px,78vw);margin:0 auto}
-.vis .cel{width:100%}
+/* "cena", e não "vis": .vis é a classe que a animação põe em cada bloco ao rolar */
+.cena{position:relative;width:min(300px,78vw);margin:0 auto}
+.cena .cel{width:100%}
 /* sobrepõem o celular só onde não há valores: f2 sobre os atalhos (lado direito) e f1 sobre a barra de baixo (lado esquerdo) */
 .f2{left:calc(100% - 92px);top:37%}.f1{right:calc(100% - 104px);bottom:1.5%}
 .flutua span{white-space:nowrap}
-@media (max-width:1199px){
+@media (max-width:1259px){
   .flts{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin-top:18px;width:max-content;max-width:calc(100vw - 32px);position:relative;left:50%;transform:translateX(-50%)}
   .flts .flutua{position:static;max-width:100%}
   .flutua span{white-space:normal}
 }
+@media (min-width:861px) and (max-width:1259px){.flts{flex-direction:column;align-items:center;max-width:100%}}/* duas colunas: um balão embaixo do outro, para não passar da borda */
 @media (max-width:560px){.flutua{font-size:12px;padding:8px 12px;gap:8px}.flutua b{font-size:13px}.flutua .ic{width:28px;height:28px}}
 
 /* dores */
@@ -277,7 +279,7 @@ footer .marca{color:var(--tx);margin-bottom:6px}
         <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5L20 7"/></svg>Seus dados ficam no seu celular</li>
       </ul>
     </div>
-    <div class="vis">
+    <div class="cena">
       <div class="cel"><img src="img/1-inicio.jpg" alt="Tela inicial do Domicash com quanto fica livre no mês, atalhos e calendário de pagamentos" width="540" height="1080"></div>
       <div class="flts">
       <div class="flutua f1"><span class="ic" style="background:color-mix(in srgb,var(--verde) 18%,transparent);color:var(--verde)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg></span><span><b>Nubank vence amanhã</b>o celular avisa antes</span></div>
