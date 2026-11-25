@@ -844,15 +844,41 @@ function salvar(){if(typeof emExemplo==='function'&&emExemplo())return;// exempl
 // ---- Widget na tela inicial (Pro): o app manda o resumo pronto. Com o bloqueio do app ligado, os valores ficam ocultos ----
 var _wTimer=null;
 function widgetDepois(){clearTimeout(_wTimer);_wTimer=setTimeout(atualizarWidget,1500)}
-function resumoWidget(){
-  if(!temPro())return{titulo:'Domicash',valor:'Widget do Pro',linha:'Toque para conhecer o Domicash Pro'};
-  if(travaLigada())return{titulo:'Domicash',valor:'Valores ocultos',linha:'O app está protegido. Toque para abrir.'};
-  // mês atual; se já não há nada a receber nele, mostra o próximo
-  let M=mesAtual(),gs=checklistMes(M).filter(g=>g.tipo==='r'&&g.pend>0.004);if(!gs.length){M++;gs=checklistMes(M).filter(g=>g.tipo==='r'&&g.pend>0.004)}
-  const hoje=M===mesAtual()?new Date().getDate():0,tot=r2(gs.reduce((s,g)=>s+g.pend,0)),na=devedoresAtrasados().length,px=gs.filter(g=>g.dia>=hoje).sort((a,b)=>a.dia-b.dia)[0];
-  const linha=[na?`${na} atrasado${na>1?'s':''}`:'ninguém atrasado',px?`próxima: ${primeiroNome(px.dev)}, dia ${px.dia}`:''].filter(Boolean).join(' · ');
-  return{titulo:`A receber em ${MESES_LONGOS[M%12].toLowerCase()}`,valor:brl(tot),linha}}
-function atualizarWidget(){const W=typeof plugin==='function'&&plugin('Widget');if(!W||emExemplo())return;try{W.atualizar(resumoWidget()).catch(()=>{})}catch(e){}}
+// v1.26.1: 7 widgets e 4 cores. O app manda tudo pronto (este mês e o próximo); o widget só escolhe o mês e a semana pela data do celular.
+// Com o bloqueio ligado não vai nenhum valor nem nome; com o olho fechado, não vai nenhum valor.
+const CHAVE_CORW='cobrancas_widget_cor',CORES_W=[['verde','Verde do ícone'],['escuro','Escuro'],['claro','Claro'],['vidro','Transparente']];
+const TIPOS_W=[['livre','Livre no mês','Quanto sobra, quanto dá por dia e as contas pagas'],['proximos','Próximos pagamentos','O que vence, com os atrasados na frente'],['deve','Quem te deve','O total do mês e quem está em atraso'],['completo','Completo','Livre no mês, próximos e atalhos'],['atalhos','Atalhos','Recebi, Paguei, Dívida, Ganho e Agenda'],['compacto','Compacto','Contas pagas e quanto dá por dia'],['semana','Sua semana','7 dias com o que vence']];
+function corWidget(){try{const c=LS_.getItem(CHAVE_CORW);if(CORES_W.some(x=>x[0]===c))return c}catch(e){}return'verde'}
+function dadosWidget(){
+  const cor=corWidget();if(!temPro())return{cor,estado:'pro'};if(travaLigada())return{cor,estado:'trava'};
+  const oc=valoresOcultos(),M0=mesAtual(),c=v=>oc?null:Math.round(v*100),h0=hojeISO(),mk=M=>`${Math.floor(M/12)}-${pad2(M%12+1)}`,iso=(M,d)=>`${mk(M)}-${pad2(d)}`,ls=[];
+  // a pagar, a cobrar e Agenda: 3 meses para trás (atrasados) até o mês que vem, com a mesma conta do Início
+  for(let m=M0-3;m<=M0+1;m++)checklistMes(m).forEach(x=>{if(x.feito||x.pend<0.005||!x.dia)return;const L=loja(x.lj),cr=x.tipo==='p'?L.cor||'#5B4FD6':'#0E7A4F';
+    ls.push({d:iso(m,x.dia),t:x.tipo,n:x.rot,s:siglaDe(x.tipo==='p'?(L.sc?x.rot.replace(/ \([^)]*\)$/,''):L.nome):x.dev),c:cr,ct:corSobre(cr),k:x.tipo+'|'+(x.tipo==='r'?x.dev:x.lj),v:x.pend,x:x.tipo==='r'?'d|'+x.dev:'b|'+x.lj+'|'+m})});
+  lems().forEach(l=>{if(l.pago||!l.data||l.data>iso(M0+1,31))return;ls.push({d:l.data,t:'a',n:l.desc||l.para||'Lembrete',s:'•',c:LEM_COR,ct:'#14121C',k:'a|'+l.id,v:l.valor||0,x:'a|'+l.id})});
+  ls.sort((p,q)=>p.d<q.d?-1:p.d>q.d?1:0);const gr=new Map(),its=[];// atrasados: uma linha por pessoa ou conta
+  ls.forEach(x=>{if(x.d>=h0){its.push(x);return}const g=gr.get(x.k);if(g){g.v=r2(g.v+x.v);g.q++}else{gr.set(x.k,x);x.q=1;its.push(x)}});
+  const meses=[M0,M0+1].map(M=>{const r=livreDoMes(M),ck=checklistMes(M),p=db.eu?ck.filter(x=>x.tipo==='p'):[],ps=new Map();
+    ck.forEach(x=>{if(x.tipo!=='r'||x.pend<0.005)return;const g=ps.get(x.dev)||{n:x.dev,s:siglaDe(x.dev),v:0,d:''};g.v=r2(g.v+x.pend);ps.set(x.dev,g)});
+    its.forEach(x=>{if(x.t!=='r')return;const g=ps.get(x.n);if(g&&(!g.d||x.d<g.d))g.d=x.d});
+    const pl=[...ps.values()].sort((x,y)=>(y.d&&y.d<h0?1:0)-(x.d&&x.d<h0?1:0)||y.v-x.v);
+    return{m:mk(M),nome:MESES_LONGOS[M%12].toLowerCase(),renda:!!r.renda,livre:c(r.livre),contas:c(r.contas),metas:c(r.metas),entra:c(r.en),pagas:p.filter(x=>x.feito).length,total:p.length,receber:c(pl.reduce((s,x)=>s+x.v,0)),pessoas:pl.slice(0,4).map(x=>({...x,v:c(x.v)}))}});
+  return{cor,estado:'ok',meses,itens:its.slice(0,40).map(({k,...x})=>({...x,v:c(x.v)}))}}
+function atualizarWidget(){const W=typeof plugin==='function'&&plugin('Widget');if(!W||emExemplo())return;try{W.atualizar({dados:JSON.stringify(dadosWidget())}).catch(()=>{})}catch(e){}}
+// Toque no widget: abre o lugar certo, depois do bloqueio. Com uma janela ou algo digitado, só traz o app para a frente
+function abrirDoWidget(x){if(!x)return;quandoDestravado(()=>{if(ocupada()||document.querySelector('.bv,.tourfx,#modal,#sobre,#folhaDiv'))return;const[k,v,m]=String(x).split('|');
+  if(k==='recebi'){ir('inicio');recebiDeAlguem()}
+  else if(k==='paguei'){ir('inicio');pagueiConta(db.eu?mesPadraoPessoal():mesPadraoGeral())}
+  else if(k==='nova'){ir('inicio');document.getElementById('fab').click()}
+  else if(k==='ganho'){ir(db.eu?'ganhos':'pessoal');if(db.eu)novoGanho()}
+  else if(k==='agenda'){if(temPro()||exigePro('agenda'))irAgenda(mesAtual(),null)}
+  else if(k==='pessoas')irLimpo('devedores');else if(k==='mes')irLimpo('mes');else if(k==='pro')ir('pro');
+  else if(k==='d'){if(nomes().includes(v)){estado.aba='devedores';estado.devedor=v;render();scrollTo(0,0)}else irLimpo('devedores')}
+  else if(k==='b'){estado.mesI=+m||mesAtual();estado.diaSel=null;ir('inicio');confirmarPagoBanco(v,+m||mesAtual())}
+  else if(k==='a'){const l=lems().find(z=>z.id===v);if(l)irAgenda(mesLem(l.data),diaLem(l));else irAgenda(mesAtual(),null)}
+  else if(k==='cal'&&/^\d{4}-\d{2}-\d{2}$/.test(v||'')){estado.mesI=+v.slice(0,4)*12+ +v.slice(5,7)-1;estado.diaSel=+v.slice(8,10);ir('inicio');const e=document.getElementById('iCk');if(e)e.scrollIntoView({block:'start'})}
+  else irLimpo('inicio')})}
+function acaoWidget(){const W=typeof plugin==='function'&&plugin('Widget');if(!W||!W.pegarAcao)return;W.pegarAcao().then(r=>{if(r&&r.acao)abrirDoWidget(r.acao)}).catch(()=>{})}
 
 // ---- Categorias: campo próprio (d.cat), opcional. Vazio = "Outros". ----
 // Lista pronta: [nomes aceitos (usa o que você já tiver), palavras-chave]. Palavras curtas (até 4 letras) só valem como palavra inteira.
@@ -1270,7 +1296,7 @@ const RECURSOS_PRO={
   diacobrar:['bell','Dia de cobrar','No dia do vencimento, um aviso: "Hoje é dia de cobrar Ana", com 1 toque para enviar.',1],
   fatura:['split','Fatura dividida','Antes de vencer, quanto da fatura é seu e quanto é de cada pessoa, para cobrar todos.',1],
   multa:['percent','Multa e juros por atraso','Calcula o acréscimo combinado e inclui na cobrança, só para quem você escolher.',1],
-  widget:['widget','Widget na tela inicial','Quanto você tem a receber no mês e quem está atrasado, sem abrir o app.',1],
+  widget:['widget','Widgets na tela inicial','Sete, em quatro cores: livre no mês, próximos pagamentos, quem te deve, atalhos e mais.',1],
   drive:['cloud','Backup automático no Google Drive','Trocou de celular? Entra com a conta e está tudo lá.',1],
   cobrar:['chat','Cobrança completa','Cada parcela detalhada, o tom certo, sua chave Pix e cobrar várias pessoas em sequência. A cobrança simples é grátis.',1],
   resumo:['share','Compartilhar resumo','Imagem ou PDF com tudo o que a pessoa deve, para enviar a ela.',1],
@@ -3669,9 +3695,10 @@ function formLembrete(l,dataPadrao){
 
 // ---- Guia e novidades: boas-vindas, tour com destaque, missões e novidades de cada versão ----
 // Estado em LS_ 'cobrancas_guia' (deste celular): {vistas:[ids], novLida:'1.6', bv:true}
-const VERSAO_APP='1.26';
+const VERSAO_APP='1.26.1';
 // No Guia aparece só a 1ª (a versão atual); as anteriores ficam só como registro (o histórico completo está nas Releases e em versoes/)
 const NOVIDADES=[
+  ['1.26.1','25 nov 2026','Sete widgets',['Widgets novos na tela inicial: livre no mês, próximos pagamentos, quem te deve, completo, atalhos, compacto e sua semana.','Quatro cores e o botão "Colocar" em Ajustes › Aparência. Cada parte do widget abre o lugar certo do app.','Com o bloqueio ligado, o widget não mostra valores nem nomes.'],'aparencia'],
   ['1.26','25 nov 2026','Apagar pessoa',['Cadastrou errado? No fim da ficha, "Apagar pessoa" tira as dívidas, os pagamentos e o placar dela. Dá para desfazer no Histórico.','Outra pessoa com o mesmo nome começa do zero: se sobrou histórico, o app pergunta se é a mesma.','Próximos pagamentos mostra quanto você já pagou da conta. "Pagou em dia" conta cada parcela uma vez só.'],'devedores'],
   ['1.25.4','23 nov 2026','Pagamento em parte, avisos e perguntas',['Pagamento em parte: o aviso e a prévia mostram só o que falta, e a conta fica legível na lista. Na cobrança, o botão do aviso é "Cobrar agora".','Próximos pagamentos com os atrasados, a Agenda e "sua parte da fatura". Com parcela antiga em aberto, o app avisa ao marcar o mês.','Um número só: Livre, Visão do mês, dia a dia, Destaques e Contas mostram o mesmo valor. O saldo da conta vale também para os próximos meses.','As perguntas agora são do próprio app. Com algo digitado, ele avisa antes de sair.','Cobrança com o vencimento de cada item. Textos mais nítidos, os mesmos nomes em todo lugar e 16 conquistas.','"Sou eu", em Contas: corrija o seu nome, escolha outra pessoa da lista ou cadastre outro nome.'],'inicio'],
   ['1.25.3','23 nov 2026','Avisos, valores e contas certas',['Os avisos voltam a funcionar para quem tem mensalidade sem cartão (Pix, boleto, débito).','Valores: digite só os números, e os centavos entram sozinhos. Para R$ 12,50, digite 1250.','Início, Visão do mês, dia a dia e Contas mostram a mesma conta, já com a Agenda e as metas.','O olho esconde os valores no app todo, Contas abre desde o primeiro dia e tudo abre no mês atual.'],'mes'],
@@ -3768,7 +3795,7 @@ const MISSOES=[
   ['csv','Compartilhar e backup','Exporte para planilha','Arquivo CSV para Excel',()=>false,[PT('backup','#csv','Planilha','Gera um arquivo com todas as dívidas, mês a mês, para abrir no Excel ou no Google Planilhas.')]],
   ['pix','Personalizar e proteger','Cadastre sua chave Pix','Vai nas mensagens de cobrança',()=>!!db.pix,[PT('ajustes','[data-sub=meus]','Meus dados','Guarde aqui sua chave Pix e a cidade. Com elas, a cobrança leva o Pix Copia e Cola e o QR Code já com o valor.')]],
   ['trava','Personalizar e proteger','Proteja com digital ou PIN','Ninguém abre o app sem você',()=>travaLigada(),[PT('seguranca','#travaAtiva','Bloqueio','Ligue para o app pedir sua digital ao abrir e ao voltar depois de 1 minuto. Sem digital nem bloqueio de tela, o app usa uma senha própria de 6 números.')]],
-  ['widget','Personalizar e proteger','Coloque o widget na tela inicial','Quanto falta receber, sem abrir o app',()=>false,[PT('inicio','#vnRes','Widget','Na tela inicial do celular, toque e segure num espaço vazio › Widgets › Domicash. Ele mostra quanto você tem a receber no mês e quem está atrasado. Com o bloqueio ligado, os valores ficam ocultos.')]],
+  ['widget','Personalizar e proteger','Coloque um widget na tela inicial','Sete opções, sem abrir o app',()=>lsTem(CHAVE_CORW),[PT('aparencia','#cardWidget [data-wcolocar]','Colocar','Escolha um dos 7 e toque em "Colocar". Ou, na tela inicial do celular, toque e segure num espaço vazio › Widgets › Domicash.'),PT('aparencia','#corW','Cor','Verde, escuro, claro ou transparente. Com o bloqueio ligado, os valores e os nomes não aparecem.')]],
   ['tema','Personalizar e proteger','Escolha seu tema','Claro, escuro, black…',()=>lsTem(CHAVE_TEMA),[PT('aparencia','#temas','Tema','Escolha as cores do app.')]],
   ['texto','Personalizar e proteger','Ajuste o tamanho do texto','Letras maiores ou menores',()=>lsTem('cobrancas_fonte'),[PT('aparencia','#fonteRange','Tamanho do texto','Arraste para aumentar ou diminuir tudo no app: textos, botões e espaços.')]],
   ['grafico','Personalizar e proteger','Troque o estilo do gráfico','Pizza, cartões, barras…',()=>lsTem('cobrancas_grafico'),[PT('aparencia','[data-escolha-grafico]','Gráfico de categorias','Seis estilos para o "Para onde vai seu dinheiro".')]],
@@ -3883,6 +3910,8 @@ const TELAS_AJUDA={
     ['Para que serve "Anoto meus gastos do dia a dia"?','Ligado, o Início mostra os dias da última semana sem nada anotado e ajuda a colocar em dia, um dia por vez.'],['Por que o aviso se repete?','Para você não esquecer se fechar a notificação. Ele para quando você marca como pago. Ajuste em "Repetir no dia".']]],
   backup:['Backup','Cópias dos seus dados: automática no celular, pelo Google e manual.',[['Onde ficam os backups?','Em Documentos › Domicash (ou na pasta escolhida). Continuam lá mesmo se desinstalar o app. Com a conta do Google conectada, também no seu Google Drive.'],['Como guardar no Google Drive?','Entre com o Google em Ajustes › Meus dados. O app só usa uma pasta oculta dele no seu Drive e não vê seus outros arquivos. Em "Onde salvar" você escolhe Drive, Drive e celular, ou só o celular.'],['E se o Drive estiver cheio?','O backup é salvo no celular na hora e o app avisa. Nada se perde.']]],
   aparencia:['Aparência','Cores do app, cor do topo, tamanho do texto e estilo do gráfico.',[
+    ['Quais widgets existem?','Livre no mês, Próximos pagamentos, Quem te deve, Completo, Atalhos, Compacto e Sua semana. Em Ajustes › Aparência, toque em "Colocar". Dá para ter mais de um e mudar o tamanho na tela inicial.'],
+    ['Por que o widget mostra "Valores ocultos"?','Porque o bloqueio do app está ligado: nada seu vai para a tela inicial. Os atalhos continuam, e o toque pede a digital antes.'],
     ['O que muda com a "Cor do topo"?','A cor da barra de cima de todas as telas e do bloco com os números principais do Início e da Visão do mês. O verde segue o ícone do app e é o padrão.']]],
   ajustes:['Ajustes','Meus dados (chave Pix), bancos e lojas, categorias, aparência, avisos, segurança e backup. No menu, toque na seta de Ajustes para ver cada um.',[]],
   lojas:['Bancos e lojas','Os bancos, cartões e lojas onde as dívidas estão, com cor, dia de vencimento e limite.',[['Para que serve o vencimento?','Para o app montar o calendário, o checklist e os avisos de cada mês.'],['Como troco a cor?','Toque na bolinha do banco. Escolha um dos 10 tons (são as cores dos bancos mais usados) e, na linha de baixo, a intensidade, do claro ao escuro. Ao cadastrar, digitar o nome de um banco conhecido já marca a cor dele.'],
@@ -4321,7 +4350,7 @@ function telaAparencia(){
   <div class="barras">${BARRAS.map(([k,n])=>`<button class="barraop${b===k?' on':''}" data-barra="${k}"><span class="mini-hdr" style="background:${k==='neutra'?'var(--card)':corBarra(k,tb)};color:${k==='neutra'?'var(--tx)':'#fff'}"><i></i>Início</span>${n}</button>`).join('')}</div>
   <div class="lbl" style="margin-bottom:8px">Vale para a barra de cima e para o topo do Início e da Visão do mês. O verde segue o ícone do app (padrão) e fica um pouco mais escuro nos temas escuros, para não ofuscar.</div>
   <h2>Widget na tela inicial${cadPro()}</h2>
-  <div class="card" id="cardWidget"${attrPro('widget')} style="display:flex;gap:12px;align-items:flex-start"><span class="icpro">${ic('widget',18)}</span><div class="lbl" style="margin:0;line-height:1.5;color:var(--tx)">Mostra quanto você tem a receber no mês e quem está atrasado, sem abrir o app.<br><span style="color:var(--tx2)">Para colocar: toque e segure num espaço vazio da tela inicial › Widgets › Domicash. Com o bloqueio do app ligado, os valores ficam ocultos no widget.</span></div></div>
+  <div class="card" id="cardWidget"${attrPro('widget')}><div class="lbl" style="margin:0 0 8px;line-height:1.5;color:var(--tx)">7 widgets. Toque em "Colocar", ou toque e segure num espaço vazio da tela inicial › Widgets › Domicash.</div>${TIPOS_W.map(([k,n,d])=>`<div class="row" style="padding:9px 0"><div class="grow"><div class="t">${n}</div><div class="s">${d}</div></div><button class="mini" data-wcolocar="${k}" aria-label="Colocar ${n}">Colocar</button></div>`).join('')}<div class="lbl" style="margin:12px 0 6px">Cor</div><div class="chips" id="corW">${CORES_W.map(([k,n])=>`<button class="chip${corWidget()===k?' on':''}" data-corw="${k}" aria-pressed="${corWidget()===k}">${n}</button>`).join('')}</div><div class="lbl" style="margin:10px 0 0">Com o bloqueio ligado, os valores e os nomes não vão para o widget. Com o olho fechado, os valores não vão.</div></div>
   <h2>Tamanho do texto</h2>
   <div style="display:flex;align-items:center;gap:12px;margin:14px 2px"><span style="font-size:13px;font-weight:700">A</span><input type="range" id="fonteRange" min="0" max="3" step="1" value="${FONTES.findIndex(x=>x[0]===f)}" style="flex:1;padding:0;border:0;accent-color:var(--pri)" aria-label="Tamanho do texto"><span style="font-size:22px;font-weight:700">A</span></div>
   <div class="chips">${FONTES.map(([v,n])=>`<button class="chip${v===f?' on':''}" data-fonte="${v}">${n}</button>`).join('')}</div>
@@ -4331,6 +4360,8 @@ function telaAparencia(){
   <div class="lbl">Estilo do card "Para onde vai seu dinheiro" em Contas. Também dá para trocar pelos ícones no próprio card.</div>`;
 }
 function ligarAparencia(){
+  document.querySelectorAll('[data-corw]').forEach(b=>b.onclick=()=>{if(!exigePro('widget'))return;const y=scrollY;try{LS_.setItem(CHAVE_CORW,b.dataset.corw)}catch(e){}render();scrollTo(0,y);atualizarWidget();toast('Cor do widget: '+CORES_W.find(x=>x[0]===b.dataset.corw)[1])});
+  document.querySelectorAll('[data-wcolocar]').forEach(b=>b.onclick=()=>{if(!exigePro('widget'))return;const W=plugin('Widget'),nao=()=>avisarApp('Toque e segure num espaço vazio da tela inicial › Widgets › Domicash.','Coloque pela tela inicial');if(!W||!W.colocar){nao();return}atualizarWidget();W.colocar({tipo:b.dataset.wcolocar}).then(r=>{if(!r||!r.ok)nao()}).catch(nao)});
   document.querySelectorAll('#temas [data-escolha-tema]').forEach(b=>b.onclick=()=>{if(TEMAS_PRO.includes(b.dataset.escolhaTema)&&!exigePro('temas'))return;const y=scrollY;try{LS_.setItem(CHAVE_TEMA,b.dataset.escolhaTema)}catch(e){}aplicarTema();render();scrollTo(0,y)});
   document.querySelectorAll('.barras [data-barra]').forEach(b=>b.onclick=()=>{const y=scrollY;try{LS_.setItem(CHAVE_BARRA,b.dataset.barra)}catch(e){}aplicarBarra();render();scrollTo(0,y)});
   const muda=v=>{try{LS_.setItem('cobrancas_fonte',String(v))}catch(e){}aplicarFonte();render()};
@@ -4939,6 +4970,7 @@ aplicarFonte();
 if(migrarCategorias(db))salvar();
 render();
 iniciarTrava();
+setTimeout(acaoWidget,700);(function(){const A=plugin('App');if(A)A.addListener('appStateChange',({isActive})=>{if(isActive)setTimeout(acaoWidget,500)})})();
 agendarDepois();
 copiaInternaDepois();
 // primeira abertura: oferece o backup do Google, se houver; senão, mostra as boas-vindas
